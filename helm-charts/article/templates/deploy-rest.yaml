@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: articlesapi
+spec:
+  selector:
+    matchLabels:
+      run: articlesapi
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: articlesapi
+    spec:
+      containers:
+      - name: articlesapi
+        image: quay.io/eacmesquita96/go-postgres:v0.2
+        ports:
+        - containerPort: 8080
+        env:
+          - name: "POSTGRESQL_USER"
+            value: {{ .Values.global.postgresqlUsername }}
+          - name: "POSTGRESQL_PASSWORD"
+            value: {{ .Values.global.postgresqlPassword }}
+          - name: "POSTGRESQL_DATABASE"
+            value: {{ .Values.global.postgresqlDatabase }}
+          - name: "DATABASE_SERVICE_NAME"
+            value: {{ .Values.global.postgresServiceName }}
+
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.28
+        command: ['sh', '-c', 'until nslookup {{ .Values.global.postgresServiceName }}; do echo waiting for articlesdb; sleep 2; done;']
